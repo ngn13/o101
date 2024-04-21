@@ -9,7 +9,7 @@ Aşağıdaki arşivde hazır bir dosya sistemi ve de kernel binarysi bulabilirsi
 
 - [o101.tar.gz](https://files.ngn.tf/p/k101.tar.gz) (1.7G - Arşivden çıkarınca 6GB)
 - **PGP imzası**: [o101.tar.gz.sig](https://files.ngn.tf/p/o101.tar.gz.sig) 
-- **SHA256 imzası**: `f287c43c975a072df01a719ee614cb4f2c2b0e80d1b8a00da5ec8d77a04b0631`
+- **SHA256 imzası**: `4d2dd1da0ee95a26208ab1738e4de44dd8c47cf9fb8299785cdab1cc966689c9`
 
 İndirdikten ve de doğruladıktan sonra arşivi `src` dizini altında çıkartabilirsiniz.
 
