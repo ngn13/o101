@@ -1,0 +1,11 @@
+[Unit]
+Description=Disable ASLR on boot
+
+[Service]
+Type=simple
+ExecStart=/bin/toggle-aslr
+User=root
+WorkingDirectory=/root
+
+[Install]
+WantedBy=multi-user.target
