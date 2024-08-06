@@ -24,12 +24,9 @@ o anlamda dedim.
     * tmux deneyimi/bilgisi
     * GDB deneyimi/bilgisi
 
-### Bir sorun mu var? 
+### Bir sorun mu var?
 Eğer yardıma ihtiyaç duyarsanız, herhangi bir sorun yaşarsanız
 bir [issue oluşturmaktan çekinmeyin](https://github.com/ngn13/o101/issues)
-
-Sorularınız varsa ve doğrudan iletişime geçmek istiyorsanız [bu XMPP sohbet odasına](xmpp:penguintux@conference.jabbers.one)
-katılabilirsiniz
 
 ### Hazır mısın?
 Herşey tamamsa, aşağıdaki linkleri kullanarak macerana başlayabilirsin.
