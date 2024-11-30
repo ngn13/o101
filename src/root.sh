@@ -17,25 +17,32 @@ if ! type "pacstrap" > /dev/null; then
 fi
 
 echo ">> Creating the root disk image"
-rm -rf root.raw
+rm -f root.raw
 truncate -s 6G root.raw
 mkfs.ext4 root.raw
 mkdir -p mnt 
 $SUDO mount root.raw mnt
 
 echo ">> Installing base system"
-$SUDO pacstrap mnt base base-devel vim cowsay dhcpcd openssh gdb tmux python-pwntools ropper
+$SUDO debootstrap stable mnt http://deb.debian.org/debian/
 $SUDO bash -c "cp -r 0x* mnt/root"
-$SUDO bash -c "rm -f mnt/root/0x*/0x* mnt/root/0x*/*.py mnt/root/0x*/*.s mnt/root/0x*/.gitignore"
+$SUDO bash -c "rm -f mnt/root/0x*/*.elf mnt/root/0x*/*.py"
+
+echo ">> Installing additional packages inside chroot"
+$SUDO chroot mnt /bin/bash -c "apt install -y vim cowsay dhcpcd openssh-server gdb tmux python3-pwntools python3-capstone python3-pkg-resources wget"
+$SUDO chroot mnt /bin/bash -c "wget https://kali.download/kali/pool/main/p/python-filebytes/python3-filebytes_0.10.2-0kali1_all.deb"
+$SUDO chroot mnt /bin/bash -c "wget https://http.kali.org/kali/pool/main/r/ropper/ropper_1.13.8-0kali1_all.deb"
+$SUDO chroot mnt /bin/bash -c "apt install -y ./python3-filebytes_0.10.2-0kali1_all.deb"
+$SUDO chroot mnt /bin/bash -c "apt install -y ./ropper_1.13.8-0kali1_all.deb"
+$SUDO chroot mnt /bin/bash -c "rm *.deb"
 
 echo ">> Running chroot commands"
 $SUDO chroot mnt /bin/bash -c "echo root:o101root | chpasswd"
 $SUDO chroot mnt /bin/bash -c "echo o101 > /etc/hostname"
 $SUDO chroot mnt /bin/bash -c "systemctl enable dhcpcd"
-$SUDO chroot mnt /bin/bash -c "systemctl enable sshd"
+$SUDO chroot mnt /bin/bash -c "systemctl enable ssh"
 
 echo ">> Copying config files"
-$SUDO cp files/sshd    mnt/etc/ssh/sshd_config
 $SUDO cp files/sshd    mnt/etc/ssh/sshd_config
 $SUDO cp files/profile mnt/root/.profile
 $SUDO cp files/bashrc  mnt/root/.bashrc

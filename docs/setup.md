@@ -7,7 +7,7 @@ olacağım, ancak yoksa, distronuzdaki `qemu` ve `libvirt` paketlerini kurarak b
 ### Hazır arşiv
 Aşağıdaki arşivde hazır bir dosya sistemi ve de kernel binarysi bulabilirsiniz:
 
-- [o101.tar.gz](https://files.ngn.tf/p/k101.tar.gz) (1.7G - Arşivden çıkarınca 6GB)
+- [o101.tar.gz](https://files.ngn.tf/p/o101.tar.gz) (1.7G - Arşivden çıkarınca 6GB)
 - **PGP imzası**: [o101.tar.gz.sig](https://files.ngn.tf/p/o101.tar.gz.sig) 
 - **SHA256 imzası**: `4d2dd1da0ee95a26208ab1738e4de44dd8c47cf9fb8299785cdab1cc966689c9`
 
@@ -41,6 +41,15 @@ Yine de birşey indirmek isterseniz, Arch'ın `pacman` paket yöneticisini kulla
 pacman -S <paket adı>
 ```
 Daha fazla bilgi için [bu wiki sayfasına](https://wiki.archlinux.org/title/Pacman) göz atın.
+
+# Başlamadan önce...
+İlk pratiğe geçmeden önce hemen birkaç şeyden bahsetmek istiyorum. İlk olarak tüm pratiklerin çözümleri,
+[`src/solves`](../src/solves/) dizini altında bulunuyor. Bu çözüm scriptleri makineye dahil değil, bunun sebebi
+exploitleri bu rehberi takip ederek kendiniz sıfırdan oluşturmanızı istemem. Bu sayede benimle beraber kendi exploitlerinizi
+yazarak herşeyi temel olarak anlayabilirsiniz.
+
+Ayrıca rehberler içinde verilen kod parçalarını doğrudan kullanmayınız. **Özellikle dinamik olarak hesaplnan adresler eski
+olabileceğinden doğrudan çalışmıyacaktır.** Adresleri rehberde gösterilen şekilde kendiniz hesaplamanız gerekecektir. 
 
 ---
 [Önceki](README.md) | [Sıradaki](0x0.md)

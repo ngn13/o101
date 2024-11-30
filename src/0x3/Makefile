@@ -1,2 +1,2 @@
-$(notdir $(shell pwd)): main.c
-	gcc -no-pie -o $@ $^
+$(notdir $(shell pwd)).elf: main.c
+	gcc -fstack-protector -no-pie -o $@ $^

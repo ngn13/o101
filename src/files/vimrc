@@ -1,11 +1,28 @@
-syntax on
-filetype plugin indent on
-set number
-set relativenumber
-set numberwidth=4
-set signcolumn="yes"
-set scrolloff=8
+set tabstop=2
+set softtabstop=0
 set expandtab
 set shiftwidth=2
-set tabstop=2
-set softtabstop=2
+set smarttab
+
+set fileencoding="utf-8"
+set hlsearch
+set ignorecase
+set mouse=a
+set smartcase
+set smartindent
+set noswapfile
+set pumheight=10
+set undofile
+set scrolloff=8
+set sidescrolloff=8
+set number
+set relativenumber
+set backspace=indent,eol,start
+
+if !isdirectory("/tmp/undos")
+    call mkdir("/tmp/undos", "", 0700)
+endif
+set undodir=/tmp/undos
+set undofile
+
+syntax on

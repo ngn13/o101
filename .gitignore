@@ -1,6 +1,7 @@
-src/*/0x*
-src/*/*.s
-src/*.raw
+src/0x*/*.elf
+src/0x*/*.py
+
 src/*.tar.gz
 src/bzImage
+src/*.raw
 src/mnt
