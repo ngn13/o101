@@ -1,4 +1,4 @@
-#!/bin/bash -e 
+#!/bin/bash -e
 
 if [ "$EUID" -eq 0 ]; then
   SUDO=""
@@ -6,7 +6,7 @@ elif type "doas" > /dev/null; then
   SUDO="doas"
 elif type "sudo" > /dev/null; then
   SUDO="sudo"
-else 
+else
   echo ">> Install sudo, doas or run the script as root"
   exit 1
 fi
@@ -20,7 +20,7 @@ echo ">> Creating the root disk image"
 rm -f root.raw
 truncate -s 6G root.raw
 mkfs.ext4 root.raw
-mkdir -p mnt 
+mkdir -p mnt
 $SUDO mount root.raw mnt
 
 echo ">> Installing base system"
