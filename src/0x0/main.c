@@ -11,7 +11,7 @@ int main(){
   puts("Hello, what's your name?");
 
   // !! OVERFLOW HERE !!
-  gets(overflow);
+  scanf("%s", overflow);
 
   printf("Nice to meet you %s!\n", overflow);
   return 0;

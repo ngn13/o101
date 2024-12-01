@@ -7,5 +7,3 @@ Ben bu içeriği genişletiriken, yolculuğunuza devam etmeniz için işte birka
 - [Binary Exploitation / Memory Corruption by LiveOverflow](https://youtube.com/playlist?list=PLhixgUqwRTjxglIswKp9mpkfPNfHkzyeN)
 - [how2heap](https://github.com/shellphish/how2heap)
 - [0xRick'in Prostar serisi](https://0xrick.github.io/binary-exploitation/bof1/)
-
-Şimdilik benden bu kadar.

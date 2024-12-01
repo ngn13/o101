@@ -1,2 +1,2 @@
-cowsay "welcome to o101!"
+/usr/games/cowsay "welcome to o101!"
 source ~/.bashrc
