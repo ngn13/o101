@@ -12,16 +12,15 @@ Mümkün olduğunca erkenden belirtmek isterim ki bu kaynak herkes için uygun
 olmayabilir, biraz ön bilgiye ihtiyacınız olacak:
 
 - **Zorunlu:** Bu kaynağı doğru şekilde kullanabilmek ve anlamak için aşağıdakilere ihtiyacınız olacak:
-    * Temel linux bilgisi
-    * Genel bellek yönetimi (stack, heap vs)
-    * Genel low level program akışı (özellikle `ret` yapısı, [bunu inceleyin](https://youtu.be/e46wHUjNDjE))
-    * Birazcık C bilgisi
+    * Temel GNU/Linux bilgisi
+    * Genel bellek yönetimi (stack, heap vs) bilgisi
+    * Temel assembly ve C bilgisi
     * Lab için QEMU/KVM kurulumu
+    * GDB deneyimi ve bilgisi
 
 - **Opsiyonel:** Bunun dışında aşağıdakileri biliyorsan bu kaynağı takip etmen çok daha kolay olur:
-    * Birazcık python bilgisi
-    * tmux deneyimi/bilgisi
-    * GDB deneyimi/bilgisi
+    * Az da olsa python bilgisi
+    * tmux deneyimi
 
 ### Bir sorun mu var?
 Eğer yardıma ihtiyaç duyarsanız, herhangi bir sorun yaşarsanız
@@ -42,4 +41,4 @@ Herşey tamamsa, aşağıdaki linkleri kullanarak macerana başlayabilirsin.
 | 0x2             | ret2libc ve ROP ile NX bellek korumasını bypass edin      | [0x2.md](docs/0x2.md)       |
 | 0x3             | Format metinleri ile stack çerezlerini leakleyin          | [0x3.md](docs/0x3.md)       |
 | 0x4             | glibc'den adres leakleyerek ASLR kırın                    | [0x4.md](docs/0x4.md)       |
-| 0x5             | ret2sys ile doğrudan sistem çağrılarını kullanın          | [0x5.md](docs/0x4.md)       |
+| 0x5             | ret2sys ile doğrudan sistem çağrılarını kullanın          | [0x5.md](docs/0x5.md)       |

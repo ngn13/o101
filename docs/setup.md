@@ -30,8 +30,12 @@ ssh root@127.0.0.1 -p 2222
 ```
 Benim önerim SSH'ı kullanmanız olacaktır.
 
-Sisteme girdikten sonra ev dizininde (`/root`), tüm yapıcağımız pratiklere erişebilirsiniz. Bir
-pratiği derlemek için `make` komutunu kullanın.
+Sisteme girdikten sonra ev dizininde (`/root`), tüm yapıcağımız pratiklere erişebilirsiniz. 
+Her pratik için `Makefile` programı derlemek için gerekli komutları içerirken, `.c` dosyaları
+programın kaynak kodunu içerir.
+
+Bir pratiği derlemek için `make` komutunu kullanabilirsiniz. Bu `Makefile`da belirtilen şekilde
+kaynak dosyalarını derleyip, pratiğin adı ile aynı isme sahip bir `.elf` programı oluşturacaktır.
 
 Ve evet makinede `vim` editörü ve `tmux` çoklu pencere yöneticisi ile beraber exploitinizi 
 derlemek için gerekli olacak temel araçlar mevcut. Yani onları indirmek ile uğraşmak zorunda değilsiniz.
