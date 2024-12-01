@@ -7,7 +7,7 @@
 o101, yani overflow 101 size bellek taşmalarını (memory overflow) öğretecek
 ve pratik yapmanızı sağlayacak küçük bir rehber.
 
-## Başlarken...
+### Başlarken...
 Mümkün olduğunca erkenden belirtmek isterim ki bu kaynak herkes için uygun
 olmayabilir, biraz ön bilgiye ihtiyacınız olacak:
 
@@ -24,7 +24,7 @@ olmayabilir, biraz ön bilgiye ihtiyacınız olacak:
 
 ### Bir sorun mu var?
 Eğer yardıma ihtiyaç duyarsanız, herhangi bir sorun yaşarsanız
-bir [issue oluşturmaktan çekinmeyin](https://github.com/ngn13/o101/issues).
+bir [issue oluşturmaktan çekinmeyin](https://github.com/ngn13/o101/issues/new).
 
 Ayrıca [doğrudan bana](mailto:ngn@ngn.tf) da ulaşabilirsiniz.
 
