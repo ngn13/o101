@@ -1,11 +1,11 @@
 #include <string.h>
 #include <stdio.h>
 
-void cant_get_here(){
+void cant_get_here() {
   puts("How did we get here?");
 }
 
-int main(){
+int main() {
   char overflow[32];
 
   puts("Hello, what's your name?");

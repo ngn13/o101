@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int main(){
+int main() {
   char name[40], answer[16];
 
   puts("Hello, what's your name?");
@@ -11,7 +11,7 @@ int main(){
   printf("? [yes/no]\n");
 
   scanf("%s", answer);
-  if(strcmp(answer, "yes")==0)
+  if (strcmp(answer, "yes") == 0)
     printf("Nice to meet you %s!\n", name);
 
   return 0;

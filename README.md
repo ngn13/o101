@@ -42,3 +42,4 @@ Herşey tamamsa, aşağıdaki linkleri kullanarak macerana başlayabilirsin.
 | 0x3             | Format metinleri ile stack çerezlerini leakleyin          | [0x3.md](docs/0x3.md)       |
 | 0x4             | glibc'den adres leakleyerek ASLR kırın                    | [0x4.md](docs/0x4.md)       |
 | 0x5             | ret2sys ile doğrudan sistem çağrılarını kullanın          | [0x5.md](docs/0x5.md)       |
+| 0x6             | GNU C kütüphanesinin heap yönetimini inceleyin            | [0x6.md](docs/0x6.md)       |

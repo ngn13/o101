@@ -1,7 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int main(){
+int main() {
   char overflow[32];
 
   puts("Hello, what's your name?");

@@ -1,6 +1,8 @@
+src/0x*/*/*.elf
 src/0x*/*.elf
 src/0x*/*.py
 
+src/glibc-*
 src/*.tar.gz.sig
 src/*.tar.gz
 src/bzImage
