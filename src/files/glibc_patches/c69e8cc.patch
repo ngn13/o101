@@ -1,0 +1,43 @@
+From c69e8cccaff8f2d89cee43202623b33e6ef5d24a Mon Sep 17 00:00:00 2001
+From: Wangyang Guo <wangyang.guo@intel.com>
+Date: Tue, 26 Nov 2024 15:33:38 +0800
+Subject: [PATCH] malloc: Avoid func call for tcache quick path in free()
+
+Tcache is an important optimzation to accelerate memory free(), things
+within this code path should be kept as simple as possible. This commit
+try to remove the function call when free() invokes tcache code path by
+inlining _int_free().
+
+Result of bench-malloc-thread benchmark
+
+Test Platform: Xeon-8380
+Ratio: New / Original time_per_iteration (Lower is Better)
+
+Threads#   | Ratio
+-----------|------
+1 thread   | 0.879
+4 threads  | 0.874
+
+The performance data shows it can improve bench-malloc-thread benchmark
+by ~12% in both single thread and multi-thread scenario.
+Reviewed-by: H.J. Lu <hjl.tools@gmail.com>
+---
+ malloc/malloc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index 32dbc272a8..81ddd2c3a8 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -4677,7 +4677,7 @@ _int_free_chunk (mstate av, mchunkptr p, INTERNAL_SIZE_T size, int have_lock)
+    P has already been locked.  It will perform sanity check, then try the
+    fast path to free into tcache.  If the attempt not success, free the
+    chunk to arena.  */
+-static void
++static inline void
+ _int_free (mstate av, mchunkptr p, int have_lock)
+ {
+   INTERNAL_SIZE_T size;        /* its size */
+-- 
+2.43.5
+

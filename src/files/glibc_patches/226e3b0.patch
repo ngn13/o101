@@ -1,0 +1,314 @@
+From 226e3b0a413673c0d6691a0ae6dd001fe05d21cd Mon Sep 17 00:00:00 2001
+From: Wangyang Guo <wangyang.guo@intel.com>
+Date: Wed, 4 Dec 2024 19:16:22 +0800
+Subject: [PATCH] malloc: Add tcache path for calloc
+
+This commit add tcache support in calloc() which can largely improve
+the performance of small size allocation, especially in multi-thread
+scenario. tcache_available() and tcache_try_malloc() are split out as
+a helper function for better reusing the code.
+
+Also fix tst-safe-linking failure after enabling tcache. In previous,
+calloc() is used as a way to by-pass tcache in memory allocation and
+trigger safe-linking check in fastbins path. With tcache enabled, it
+needs extra workarounds to bypass tcache.
+
+Result of bench-calloc-thread benchmark
+
+Test Platform: Xeon-8380
+Ratio: New / Original time_per_iteration (Lower is Better)
+
+Threads#   | Ratio
+-----------|------
+1 thread   | 0.656
+4 threads  | 0.470
+Reviewed-by: H.J. Lu <hjl.tools@gmail.com>
+---
+ malloc/malloc.c           | 89 ++++++++++++++++++++++++++++-----------
+ malloc/tst-safe-linking.c | 81 +++++++++++++++++++++++++++++------
+ 2 files changed, 132 insertions(+), 38 deletions(-)
+
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index ac3901bdd5..f16f89d283 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -3208,6 +3208,18 @@ tcache_next (tcache_entry *e)
+   return (tcache_entry *) REVEAL_PTR (e->next);
+ }
+ 
++/* Check if tcache is available for alloc by corresponding tc_idx.  */
++static __always_inline bool
++tcache_available (size_t tc_idx)
++{
++  if (tc_idx < mp_.tcache_bins
++      && tcache != NULL
++      && tcache->counts[tc_idx] > 0)
++    return true;
++  else
++    return false;
++}
++
+ /* Verify if the suspicious tcache_entry is double free.
+    It's not expected to execute very often, mark it as noinline.  */
+ static __attribute__ ((noinline)) void
+@@ -3330,6 +3342,32 @@ tcache_init(void)
+   if (__glibc_unlikely (tcache == NULL)) \
+     tcache_init();
+ 
++/* Trying to alloc BYTES from tcache. If tcache is available, chunk
++   is allocated and stored to MEMPTR, otherwise, MEMPTR is NULL.
++   It returns true if error occurs, else false. */
++static __always_inline bool
++tcache_try_malloc (size_t bytes, void **memptr)
++{
++  /* int_free also calls request2size, be careful to not pad twice.  */
++  size_t tbytes = checked_request2size (bytes);
++  if (tbytes == 0)
++    {
++      __set_errno (ENOMEM);
++      return true;
++    }
++
++  size_t tc_idx = csize2tidx (tbytes);
++
++  MAYBE_INIT_TCACHE ();
++
++  if (tcache_available (tc_idx))
++    *memptr = tcache_get (tc_idx);
++  else
++    *memptr = NULL;
++
++  return false;
++}
++
+ #else  /* !USE_TCACHE */
+ # define MAYBE_INIT_TCACHE()
+ 
+@@ -3354,26 +3392,13 @@ __libc_malloc (size_t bytes)
+   if (!__malloc_initialized)
+     ptmalloc_init ();
+ #if USE_TCACHE
+-  /* int_free also calls request2size, be careful to not pad twice.  */
+-  size_t tbytes = checked_request2size (bytes);
+-  if (tbytes == 0)
+-    {
+-      __set_errno (ENOMEM);
+-      return NULL;
+-    }
+-  size_t tc_idx = csize2tidx (tbytes);
++  bool err = tcache_try_malloc (bytes, &victim);
+ 
+-  MAYBE_INIT_TCACHE ();
++  if (err)
++      return NULL;
+ 
+-  DIAG_PUSH_NEEDS_COMMENT;
+-  if (tc_idx < mp_.tcache_bins
+-      && tcache != NULL
+-      && tcache->counts[tc_idx] > 0)
+-    {
+-      victim = tcache_get (tc_idx);
++  if (victim)
+       return tag_new_usable (victim);
+-    }
+-  DIAG_POP_NEEDS_COMMENT;
+ #endif
+ 
+   if (SINGLE_THREAD_P)
+@@ -3667,9 +3692,7 @@ _mid_memalign (size_t alignment, size_t bytes, void *address)
+       }
+     size_t tc_idx = csize2tidx (tbytes);
+ 
+-    if (tc_idx < mp_.tcache_bins
+-	&& tcache != NULL
+-	&& tcache->counts[tc_idx] > 0)
++    if (tcache_available (tc_idx))
+       {
+ 	/* The tcache itself isn't encoded, but the chain is.  */
+ 	tcache_entry **tep = & tcache->entries[tc_idx];
+@@ -3751,8 +3774,8 @@ void *
+ __libc_calloc (size_t n, size_t elem_size)
+ {
+   mstate av;
+-  mchunkptr oldtop;
+-  INTERNAL_SIZE_T sz, oldtopsize;
++  mchunkptr oldtop, p;
++  INTERNAL_SIZE_T sz, oldtopsize, csz;
+   void *mem;
+   unsigned long clearsize;
+   ptrdiff_t bytes;
+@@ -3768,7 +3791,23 @@ __libc_calloc (size_t n, size_t elem_size)
+   if (!__malloc_initialized)
+     ptmalloc_init ();
+ 
+-  MAYBE_INIT_TCACHE ();
++#if USE_TCACHE
++  bool err = tcache_try_malloc (bytes, &mem);
++
++  if (err)
++    return NULL;
++
++  if (mem)
++    {
++      p = mem2chunk (mem);
++      if (__glibc_unlikely (mtag_enabled))
++	return tag_new_zero_region (mem, memsize (p));
++
++      csz = chunksize (p);
++      clearsize = csz - SIZE_SZ;
++      return clear_memory ((INTERNAL_SIZE_T *) mem, clearsize);
++    }
++#endif
+ 
+   if (SINGLE_THREAD_P)
+     av = &main_arena;
+@@ -3824,7 +3863,7 @@ __libc_calloc (size_t n, size_t elem_size)
+   if (mem == NULL)
+     return NULL;
+ 
+-  mchunkptr p = mem2chunk (mem);
++  p = mem2chunk (mem);
+ 
+   /* If we are using memory tagging, then we need to set the tags
+      regardless of MORECORE_CLEARS, so we zero the whole block while
+@@ -3832,7 +3871,7 @@ __libc_calloc (size_t n, size_t elem_size)
+   if (__glibc_unlikely (mtag_enabled))
+     return tag_new_zero_region (mem, memsize (p));
+ 
+-  INTERNAL_SIZE_T csz = chunksize (p);
++  csz = chunksize (p);
+ 
+   /* Two optional cases in which clearing not necessary */
+   if (chunk_is_mmapped (p))
+diff --git a/malloc/tst-safe-linking.c b/malloc/tst-safe-linking.c
+index 01dd07004d..5302575ad1 100644
+--- a/malloc/tst-safe-linking.c
++++ b/malloc/tst-safe-linking.c
+@@ -111,22 +111,37 @@ test_fastbin (void *closure)
+   int i;
+   int mask = ((int *)closure)[0];
+   size_t size = TCACHE_ALLOC_SIZE;
++  void * ps[TCACHE_FILL_COUNT];
++  void * pps[TCACHE_FILL_COUNT];
+ 
+   printf ("++ fastbin ++\n");
+ 
++  /* Populate the fastbin list.  */
++  void * volatile a = calloc (1, size);
++  void * volatile b = calloc (1, size);
++  void * volatile c = calloc (1, size);
++  printf ("a=%p, b=%p, c=%p\n", a, b, c);
++
++  /* Chunks for later tcache filling from fastbins.  */
++  for (i = 0; i < TCACHE_FILL_COUNT; ++i)
++    {
++      void * volatile p = calloc (1, size);
++      pps[i] = p;
++    }
++
+   /* Take the tcache out of the game.  */
+   for (i = 0; i < TCACHE_FILL_COUNT; ++i)
+     {
+       void * volatile p = calloc (1, size);
+-      printf ("p=%p\n", p);
+-      free (p);
++      ps[i] = p;
+     }
+ 
+-  /* Populate the fastbin list.  */
+-  void * volatile a = calloc (1, size);
+-  void * volatile b = calloc (1, size);
+-  void * volatile c = calloc (1, size);
+-  printf ("a=%p, b=%p, c=%p\n", a, b, c);
++  for (i = 0; i < TCACHE_FILL_COUNT; ++i)
++    {
++      free (ps[i]);
++    }
++
++  /* Free abc will return to fastbin in FIFO order.  */
+   free (a);
+   free (b);
+   free (c);
+@@ -136,11 +151,43 @@ test_fastbin (void *closure)
+   memset (c, mask & 0xFF, size);
+   printf ("After: c=%p, c[0]=%p\n", c, ((void **)c)[0]);
+ 
++  /* Filling fastbins, will be copied to tcache later.  */
++  for (i = 0; i < TCACHE_FILL_COUNT; ++i)
++    {
++      free (pps[i]);
++    }
++
++  /* Drain out tcache to make sure later alloc from fastbins.  */
++  for (i = 0; i < TCACHE_FILL_COUNT; ++i)
++    {
++      void * volatile p = calloc (1, size);
++      ps[i] = p;
++    }
++
++  /* This line will also filling tcache with remain pps and c.  */
++  pps[TCACHE_FILL_COUNT - 1] = calloc (1, size);
++
++  /* Tcache is FILO, now the first one is c, take it out.  */
+   c = calloc (1, size);
+   printf ("Allocated: c=%p\n", c);
++
++  /* Drain out remain pps from tcache.  */
++  for (i = 0; i < TCACHE_FILL_COUNT - 1; ++i)
++    {
++      void * volatile p = calloc (1, size);
++      pps[i] = p;
++    }
++
+   /* This line will trigger the Safe-Linking check.  */
+   b = calloc (1, size);
+   printf ("b=%p\n", b);
++
++  /* Free previous pointers. */
++  for (i = 0; i < TCACHE_FILL_COUNT; ++i)
++    {
++      free (ps[i]);
++      free (pps[i]);
++    }
+ }
+ 
+ /* Try corrupting the fastbin list and trigger a consolidate.  */
+@@ -150,21 +197,29 @@ test_fastbin_consolidate (void *closure)
+   int i;
+   int mask = ((int*)closure)[0];
+   size_t size = TCACHE_ALLOC_SIZE;
++  void * ps[TCACHE_FILL_COUNT];
+ 
+   printf ("++ fastbin consolidate ++\n");
+ 
++  /* Populate the fastbin list.  */
++  void * volatile a = calloc (1, size);
++  void * volatile b = calloc (1, size);
++  void * volatile c = calloc (1, size);
++  printf ("a=%p, b=%p, c=%p\n", a, b, c);
++
+   /* Take the tcache out of the game.  */
+   for (i = 0; i < TCACHE_FILL_COUNT; ++i)
+     {
+       void * volatile p = calloc (1, size);
+-      free (p);
++      ps[i] = p;
+     }
+ 
+-  /* Populate the fastbin list.  */
+-  void * volatile a = calloc (1, size);
+-  void * volatile b = calloc (1, size);
+-  void * volatile c = calloc (1, size);
+-  printf ("a=%p, b=%p, c=%p\n", a, b, c);
++  for (i = 0; i < TCACHE_FILL_COUNT; ++i)
++    {
++      free (ps[i]);
++    }
++
++  /* Free abc will return to fastbin.  */
+   free (a);
+   free (b);
+   free (c);
+-- 
+2.43.5
+
