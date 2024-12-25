@@ -20,11 +20,13 @@ cp -r "${SRCDIR}/"0x* "${MNTDIR}/root"
 rm -f "${MNTDIR}/root"/0x*/*.elf "${MNTDIR}/root"/0x*/*.py
 
 info "Installing additional packages inside chroot"
-chroot "${MNTDIR}" /bin/bash -c "apt install -y vim cowsay dhcpcd openssh-server gdb tmux python3-pwntools python3-capstone python3-pkg-resources wget"
+chroot "${MNTDIR}" /bin/bash -c "apt install -y vim cowsay dhcpcd openssh-server gdb tmux python3-pwntools python3-capstone python3-pkg-resources wget strace"
 chroot "${MNTDIR}" /bin/bash -c "wget https://kali.download/kali/pool/main/p/python-filebytes/python3-filebytes_0.10.2-0kali1_all.deb"
 chroot "${MNTDIR}" /bin/bash -c "wget https://http.kali.org/kali/pool/main/r/ropper/ropper_1.13.8-0kali1_all.deb"
+chroot "${MNTDIR}" /bin/bash -c "wget https://raw.githubusercontent.com/hugsy/gef/refs/heads/main/gef.py"
 chroot "${MNTDIR}" /bin/bash -c "apt install -y ./python3-filebytes_0.10.2-0kali1_all.deb"
 chroot "${MNTDIR}" /bin/bash -c "apt install -y ./ropper_1.13.8-0kali1_all.deb"
+chroot "${MNTDIR}" /bin/bash -c "mkdir -pv /usr/share/gef && mv gef.py /usr/share/gef"
 chroot "${MNTDIR}" /bin/bash -c "rm *.deb"
 
 info "Running chroot commands"

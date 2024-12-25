@@ -9,7 +9,7 @@
 +  printf("|| index = %ld count = %u\n", tc_idx, tcache->counts[tc_idx]);
 +  printf("|| entry = %p\n", e);
 +  printf("|| entry->key = 0x%lx\n", e->key);
-+  printf("|| entry->next = %p\n", e->next);
++  printf("|| entry->next = %p (%p)\n", e->next, REVEAL_PTR(e->next));
 +  printf("##=========== %s ===========\x1b[0m\n", __func__);
  }
  

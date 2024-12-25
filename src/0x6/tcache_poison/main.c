@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -6,7 +7,9 @@
 #define REVEAL_PTR(ptr)       PROTECT_PTR(&ptr, ptr)
 
 int main() {
-  char poison_buffer[16];
+  char poison_buffer[16] __attribute__((aligned(16)));
+  bzero(poison_buffer, sizeof(poison_buffer));
+
   printf("poison_buffer = %p\n", poison_buffer);
 
   uint64_t *a = malloc(16);
