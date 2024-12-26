@@ -5,12 +5,6 @@ if ! source "./scripts/common.sh"; then
   exit 1
 fi
 
-glibc_hash="2abc038f5022949cb67e996c3cae0e7764f99b009f0b9b7fd954dfc6577b599e"
-glibc_version="2.40"
-
-glibc_dir="glibc-${glibc_version}"
-glibc_archive="${glibc_dir}.tar.gz"
-
 glibc_patches=(
   "c621d4f" # malloc: Split _int_free() into 3 sub functions
   "c69e8cc" # malloc: Avoid func call for tcache quick path in free()

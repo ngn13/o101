@@ -6,6 +6,13 @@ SRCDIR="./src"
 MNTDIR="${DISTDIR}/mnt"
 IMAGE="${DISTDIR}/root.raw"
 
+# glibc vars
+glibc_hash="2abc038f5022949cb67e996c3cae0e7764f99b009f0b9b7fd954dfc6577b599e"
+glibc_version="2.40"
+
+glibc_dir="glibc-${glibc_version}"
+glibc_archive="${glibc_dir}.tar.gz"
+
 # colors
 FG_YELLOW="\e[0;33m"
 FG_BLUE="\e[0;34m"
