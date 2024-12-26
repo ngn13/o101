@@ -7,9 +7,9 @@ olacağım, ancak yoksa, distronuzdaki `qemu` ve `libvirt` paketlerini kurarak b
 ### Hazır arşiv
 Aşağıdaki arşivde hazır bir dosya sistemi ve de kernel binarysi bulabilirsiniz:
 
-- [o101.tar.gz](https://files.ngn.tf/p/o101.tar.gz) (1.7G - Arşivden çıkarınca 6GB)
+- [o101.tar.gz](https://files.ngn.tf/p/o101.tar.gz) (524MB - Arşivden çıkarınca 6GB)
 - **PGP imzası**: [o101.tar.gz.sig](https://files.ngn.tf/p/o101.tar.gz.sig)
-- **SHA256 imzası**: `1712ab2a1b67312a26d60f55798da385c0e7b4b3c7823f2b329eb428fee3aabc`
+- **SHA256 imzası**: `a8cea6c918c65ef7dc7dcfc0db48b22b3cb7b2fdd474396397d008eebbbac3f5`
 
 İndirdikten ve de doğruladıktan sonra, `dist` isimli bir dizin oluşturup, arşivi içine taşıyın
 ve çıkartın:
