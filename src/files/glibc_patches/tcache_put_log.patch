@@ -1,0 +1,16 @@
+--- a/malloc/malloc.c	2024-12-23 23:44:12.008906433 +0300
++++ b/malloc/malloc.c	2024-12-23 23:43:42.968905285 +0300
+@@ -3167,6 +3167,13 @@
+   e->next = PROTECT_PTR (&e->next, tcache->entries[tc_idx]);
+   tcache->entries[tc_idx] = e;
+   ++(tcache->counts[tc_idx]);
++
++  printf("\x1b[36m##=========== %s ===========\n", __func__);
++  printf("|| index = %ld count = %u\n", tc_idx, tcache->counts[tc_idx]);
++  printf("|| entry = %p\n", e);
++  printf("|| entry->key = 0x%lx\n", e->key);
++  printf("|| entry->next = %p (%p)\n", e->next, REVEAL_PTR(e->next));
++  printf("##=========== %s ===========\x1b[0m\n", __func__);
+ }
+ 
+ /* Caller must ensure that we know tc_idx is valid and there's

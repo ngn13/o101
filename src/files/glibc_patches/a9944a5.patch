@@ -1,0 +1,186 @@
+From a9944a52c967ce76a5894c30d0274b824df43c7a Mon Sep 17 00:00:00 2001
+From: Sam James <sam@gentoo.org>
+Date: Mon, 9 Dec 2024 23:11:25 +0000
+Subject: [PATCH] malloc: add indirection for malloc(-like) functions in tests
+ [BZ #32366]
+
+GCC 15 introduces allocation dead code removal (DCE) for PR117370 in
+r15-5255-g7828dc070510f8. This breaks various glibc tests which want
+to assert various properties of the allocator without doing anything
+obviously useful with the allocated memory.
+
+Alexander Monakov rightly pointed out that we can and should do better
+than passing -fno-malloc-dce to paper over the problem. Not least because
+GCC 14 already does such DCE where there's no testing of malloc's return
+value against NULL, and LLVM has such optimisations too.
+
+Handle this by providing malloc (and friends) wrappers with a volatile
+function pointer to obscure that we're calling malloc (et. al) from the
+compiler.
+
+Reviewed-by: Paul Eggert <eggert@cs.ucla.edu>
+---
+ malloc/tst-aligned-alloc.c    |  2 ++
+ malloc/tst-compathooks-off.c  |  2 ++
+ malloc/tst-malloc-aux.h       | 41 +++++++++++++++++++++++++++++++++++
+ malloc/tst-malloc-check.c     |  2 ++
+ malloc/tst-malloc-too-large.c |  1 +
+ malloc/tst-malloc.c           |  2 ++
+ malloc/tst-realloc.c          |  2 ++
+ support/support.h             |  2 +-
+ test-skeleton.c               |  1 -
+ 9 files changed, 53 insertions(+), 2 deletions(-)
+ create mode 100644 malloc/tst-malloc-aux.h
+
+diff --git a/malloc/tst-aligned-alloc.c b/malloc/tst-aligned-alloc.c
+index 91167d1392..b0f05a8fec 100644
+--- a/malloc/tst-aligned-alloc.c
++++ b/malloc/tst-aligned-alloc.c
+@@ -25,6 +25,8 @@
+ #include <libc-diag.h>
+ #include <support/check.h>
+ 
++#include "tst-malloc-aux.h"
++
+ static int
+ do_test (void)
+ {
+diff --git a/malloc/tst-compathooks-off.c b/malloc/tst-compathooks-off.c
+index d0106f3fb7..4cce6e5a80 100644
+--- a/malloc/tst-compathooks-off.c
++++ b/malloc/tst-compathooks-off.c
+@@ -25,6 +25,8 @@
+ #include <support/check.h>
+ #include <support/support.h>
+ 
++#include "tst-malloc-aux.h"
++
+ extern void (*volatile __free_hook) (void *, const void *);
+ extern void *(*volatile __malloc_hook)(size_t, const void *);
+ extern void *(*volatile __realloc_hook)(void *, size_t, const void *);
+diff --git a/malloc/tst-malloc-aux.h b/malloc/tst-malloc-aux.h
+new file mode 100644
+index 0000000000..54908b4a24
+--- /dev/null
++++ b/malloc/tst-malloc-aux.h
+@@ -0,0 +1,41 @@
++/* Wrappers for malloc-like functions to allow testing the implementation
++   without optimization.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public License as
++   published by the Free Software Foundation; either version 2.1 of the
++   License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; see the file COPYING.LIB.  If
++   not, see <https://www.gnu.org/licenses/>.  */
++
++#ifndef TST_MALLOC_AUX_H
++#define TST_MALLOC_AUX_H
++
++#include <stddef.h>
++#include <stdlib.h>
++
++static void *(*volatile aligned_alloc_indirect)(size_t, size_t) = aligned_alloc;
++static void *(*volatile calloc_indirect)(size_t, size_t) = calloc;
++static void *(*volatile malloc_indirect)(size_t) = malloc;
++static void *(*volatile realloc_indirect)(void*, size_t) = realloc;
++
++#undef aligned_alloc
++#undef calloc
++#undef malloc
++#undef realloc
++
++#define aligned_alloc aligned_alloc_indirect
++#define calloc calloc_indirect
++#define malloc malloc_indirect
++#define realloc realloc_indirect
++
++#endif /* TST_MALLOC_AUX_H */
+diff --git a/malloc/tst-malloc-check.c b/malloc/tst-malloc-check.c
+index fde8863ad7..cc88bff3b3 100644
+--- a/malloc/tst-malloc-check.c
++++ b/malloc/tst-malloc-check.c
+@@ -20,6 +20,8 @@
+ #include <stdlib.h>
+ #include <libc-diag.h>
+ 
++#include "tst-malloc-aux.h"
++
+ static int errors = 0;
+ 
+ static void
+diff --git a/malloc/tst-malloc-too-large.c b/malloc/tst-malloc-too-large.c
+index 8e9e0d5fa2..2b91377e54 100644
+--- a/malloc/tst-malloc-too-large.c
++++ b/malloc/tst-malloc-too-large.c
+@@ -43,6 +43,7 @@
+ #include <unistd.h>
+ #include <sys/param.h>
+ 
++#include "tst-malloc-aux.h"
+ 
+ /* This function prepares for each 'too-large memory allocation' test by
+    performing a small successful malloc/free and resetting errno prior to
+diff --git a/malloc/tst-malloc.c b/malloc/tst-malloc.c
+index f7a6e4654c..68af399022 100644
+--- a/malloc/tst-malloc.c
++++ b/malloc/tst-malloc.c
+@@ -22,6 +22,8 @@
+ #include <libc-diag.h>
+ #include <time.h>
+ 
++#include "tst-malloc-aux.h"
++
+ static int errors = 0;
+ 
+ static void
+diff --git a/malloc/tst-realloc.c b/malloc/tst-realloc.c
+index f50499ecb1..74a28fb45e 100644
+--- a/malloc/tst-realloc.c
++++ b/malloc/tst-realloc.c
+@@ -23,6 +23,8 @@
+ #include <libc-diag.h>
+ #include <support/check.h>
+ 
++#include "tst-malloc-aux.h"
++
+ static int
+ do_test (void)
+ {
+diff --git a/support/support.h b/support/support.h
+index ba21ec9b5a..1a77f79793 100644
+--- a/support/support.h
++++ b/support/support.h
+@@ -113,7 +113,7 @@ void *xposix_memalign (size_t alignment, size_t n)
+   __attribute_malloc__ __attribute_alloc_align__ ((1))
+   __attribute_alloc_size__ ((2)) __attr_dealloc_free __returns_nonnull;
+ char *xasprintf (const char *format, ...)
+-  __attribute__ ((format (printf, 1, 2), malloc)) __attr_dealloc_free
++  __attribute__ ((format (printf, 1, 2), __malloc__)) __attr_dealloc_free
+   __returns_nonnull;
+ char *xstrdup (const char *) __attr_dealloc_free __returns_nonnull;
+ char *xstrndup (const char *, size_t) __attr_dealloc_free __returns_nonnull;
+diff --git a/test-skeleton.c b/test-skeleton.c
+index ae185a4f28..690f26e7cf 100644
+--- a/test-skeleton.c
++++ b/test-skeleton.c
+@@ -27,7 +27,6 @@
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <getopt.h>
+-#include <malloc.h>
+ #include <paths.h>
+ #include <search.h>
+ #include <signal.h>
+-- 
+2.43.5
+

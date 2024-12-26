@@ -1,0 +1,144 @@
+From 1c4cebb84b9e33aea9a90adfadb031d1f1eba927 Mon Sep 17 00:00:00 2001
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Date: Tue, 26 Nov 2024 16:15:25 +0800
+Subject: [PATCH] malloc: Optimize small memory clearing for calloc
+
+Add calloc-clear-memory.h to clear memory size up to 36 bytes (72 bytes
+on 64-bit targets) for calloc.  Use repeated stores with 1 branch, instead
+of up to 3 branches.  On x86-64, it is faster than memset since calling
+memset needs 1 indirect branch, 1 broadcast, and up to 4 branches.
+
+Signed-off-by: H.J. Lu <hjl.tools@gmail.com>
+Reviewed-by: Wilco Dijkstra  <Wilco.Dijkstra@arm.com>
+---
+ malloc/malloc-internal.h              |  1 +
+ malloc/malloc.c                       | 36 +-------------------
+ sysdeps/generic/calloc-clear-memory.h | 49 +++++++++++++++++++++++++++
+ 3 files changed, 51 insertions(+), 35 deletions(-)
+ create mode 100644 sysdeps/generic/calloc-clear-memory.h
+
+diff --git a/malloc/malloc-internal.h b/malloc/malloc-internal.h
+index cba03433fe..3349e2d1fe 100644
+--- a/malloc/malloc-internal.h
++++ b/malloc/malloc-internal.h
+@@ -23,6 +23,7 @@
+ #include <malloc-sysdep.h>
+ #include <malloc-size.h>
+ #include <malloc-hugepages.h>
++#include <calloc-clear-memory.h>
+ 
+ /* Called in the parent process before a fork.  */
+ void __malloc_fork_lock_parent (void) attribute_hidden;
+diff --git a/malloc/malloc.c b/malloc/malloc.c
+index 287fa0904d..ac3901bdd5 100644
+--- a/malloc/malloc.c
++++ b/malloc/malloc.c
+@@ -3755,8 +3755,6 @@ __libc_calloc (size_t n, size_t elem_size)
+   INTERNAL_SIZE_T sz, oldtopsize;
+   void *mem;
+   unsigned long clearsize;
+-  unsigned long nclears;
+-  INTERNAL_SIZE_T *d;
+   ptrdiff_t bytes;
+ 
+   if (__glibc_unlikely (__builtin_mul_overflow (n, elem_size, &bytes)))
+@@ -3853,40 +3851,8 @@ __libc_calloc (size_t n, size_t elem_size)
+     }
+ #endif
+ 
+-  /* Unroll clear of <= 36 bytes (72 if 8byte sizes).  We know that
+-     contents have an odd number of INTERNAL_SIZE_T-sized words;
+-     minimally 3.  */
+-  d = (INTERNAL_SIZE_T *) mem;
+   clearsize = csz - SIZE_SZ;
+-  nclears = clearsize / sizeof (INTERNAL_SIZE_T);
+-  assert (nclears >= 3);
+-
+-  if (nclears > 9)
+-    return memset (d, 0, clearsize);
+-
+-  else
+-    {
+-      *(d + 0) = 0;
+-      *(d + 1) = 0;
+-      *(d + 2) = 0;
+-      if (nclears > 4)
+-        {
+-          *(d + 3) = 0;
+-          *(d + 4) = 0;
+-          if (nclears > 6)
+-            {
+-              *(d + 5) = 0;
+-              *(d + 6) = 0;
+-              if (nclears > 8)
+-                {
+-                  *(d + 7) = 0;
+-                  *(d + 8) = 0;
+-                }
+-            }
+-        }
+-    }
+-
+-  return mem;
++  return clear_memory ((INTERNAL_SIZE_T *) mem, clearsize);
+ }
+ #endif /* IS_IN (libc) */
+ 
+diff --git a/sysdeps/generic/calloc-clear-memory.h b/sysdeps/generic/calloc-clear-memory.h
+new file mode 100644
+index 0000000000..1f9d70d267
+--- /dev/null
++++ b/sysdeps/generic/calloc-clear-memory.h
+@@ -0,0 +1,49 @@
++/* Clear a block of memory for calloc.  Generic version.
++   Copyright (C) 2024 Free Software Foundation, Inc.
++   This file is part of the GNU C Library.
++
++   The GNU C Library is free software; you can redistribute it and/or
++   modify it under the terms of the GNU Lesser General Public
++   License as published by the Free Software Foundation; either
++   version 2.1 of the License, or (at your option) any later version.
++
++   The GNU C Library is distributed in the hope that it will be useful,
++   but WITHOUT ANY WARRANTY; without even the implied warranty of
++   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++   Lesser General Public License for more details.
++
++   You should have received a copy of the GNU Lesser General Public
++   License along with the GNU C Library; if not, see
++   <https://www.gnu.org/licenses/>.  */
++
++static __always_inline void *
++clear_memory (INTERNAL_SIZE_T *d, unsigned long clearsize)
++{
++  /* Unroll clear memory size up to 9 * INTERNAL_SIZE_T bytes.  We know
++     that contents have an odd number of INTERNAL_SIZE_T-sized words;
++     minimally 3 words.  */
++  unsigned long nclears = clearsize / sizeof (INTERNAL_SIZE_T);
++
++  if (nclears > 9)
++    return memset (d, 0, clearsize);
++
++  /* NB: The VRP pass in GCC 14.2 will optimize it out.  */
++  if (nclears < 3)
++    __builtin_unreachable ();
++
++  /* Use repeated stores with 1 branch, instead of up to 3.  */
++  *(d + 0) = 0;
++  *(d + 1) = 0;
++  *(d + 2) = 0;
++  *(d + nclears - 2) = 0;
++  *(d + nclears - 2 + 1) = 0;
++  if (nclears > 5)
++    {
++      *(d + 3) = 0;
++      *(d + 3 + 1) = 0;
++      *(d + nclears - 4) = 0;
++      *(d + nclears - 4 + 1) = 0;
++    }
++
++  return d;
++}
+-- 
+2.43.5
+

@@ -33,12 +33,14 @@ Herşey tamamsa, aşağıdaki linkleri kullanarak macerana başlayabilirsin.
 
 İyi eğlenceler!
 
-| Bölüm           | Açıklama                                                  | Link                        |
-| --------------- | --------------------------------------------------------- | --------------------------- |
-| Kurulum         | Pratik ortamını nasıl kuracağınızı öğrenin                | [setup.md](docs/setup.md)   |
-| 0x0             | Dönüş adresi ile programın akışını değiştirin             | [0x0.md](docs/0x0.md)       |
-| 0x1             | Stack üzerinde shellcode çalıştırın                       | [0x1.md](docs/0x1.md)       |
-| 0x2             | ret2libc ve ROP ile NX bellek korumasını bypass edin      | [0x2.md](docs/0x2.md)       |
-| 0x3             | Format metinleri ile stack çerezlerini leakleyin          | [0x3.md](docs/0x3.md)       |
-| 0x4             | glibc'den adres leakleyerek ASLR kırın                    | [0x4.md](docs/0x4.md)       |
-| 0x5             | ret2sys ile doğrudan sistem çağrılarını kullanın          | [0x5.md](docs/0x5.md)       |
+| Bölüm           | Açıklama                                                     | Link                        |
+| --------------- | ------------------------------------------------------------ | --------------------------- |
+| Kurulum         | Pratik ortamını nasıl kuracağınızı öğrenin                   | [setup.md](docs/setup.md)   |
+| 0x0             | Dönüş adresi ile programın akışını değiştirin                | [0x0.md](docs/0x0.md)       |
+| 0x1             | Stack üzerinde shellcode çalıştırın                          | [0x1.md](docs/0x1.md)       |
+| 0x2             | ret2libc ve ROP ile NX bellek korumasını bypass edin         | [0x2.md](docs/0x2.md)       |
+| 0x3             | Format metinleri ile stack çerezlerini leakleyin             | [0x3.md](docs/0x3.md)       |
+| 0x4             | glibc'den adres leakleyerek ASLR kırın                       | [0x4.md](docs/0x4.md)       |
+| 0x5             | ret2sys ile doğrudan sistem çağrılarını kullanın             | [0x5.md](docs/0x5.md)       |
+| 0x6             | GNU C kütüphanesinin heap yönetimini inceleyin               | [0x6.md](docs/0x6.md)       |
+| 0x7             | tcache'yi zehirleyek heap taşmasını, stack taşmasına çevirin | [0x7.md](docs/0x7.md)       |
