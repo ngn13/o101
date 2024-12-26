@@ -14,7 +14,7 @@ ram=$(grep MemTotal /proc/meminfo | awk '{print $2}')
 ram=$(expr "${ram}" / 1024) # kb to mb
 ram=$(expr "${ram}" / 1024) # mb to gb
 
-if [ "${ram}" \< 2 ]; then
+if [ "2" -gt "${ram}" ]; then
   error "You need at least 2GB host memory, if you want less please edit this script (${0})"
   exit 1
 fi
