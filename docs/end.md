@@ -1,5 +1,5 @@
 # ...ve son! Ya da öyle mi?
-o101 şimdilik bu kadar. Eğer içeriğin genişlemesini istyorsanız ve de bellek taşmaları hakında
+overflow 101 şimdilik bu kadar. Eğer içeriğin genişlemesini istyorsanız ve de bellek taşmaları hakında
 bilgili iseniz lütfen katkıda bulunmaktan çekinmeyin! Diğer türlü bu içeriğe ilgili olduğunuzu
 belirtmek için bir yıldız bırakın.
 

@@ -1,10 +1,10 @@
 <h1 align="center">
   <img width="640px" src="assets/banner.png">
   </br>
-  o101 | Bellek taşmalarını öğrenin
+  overflow 101 | Bellek taşmalarını öğrenin
 </h1>
 
-o101, yani overflow 101 size bellek taşmalarını (memory overflow) öğretecek
+Size bellek taşmalarını (memory overflow) öğretecek
 ve pratik yapmanızı sağlayacak küçük bir rehber.
 
 ### Başlarken...
@@ -24,7 +24,7 @@ olmayabilir, biraz ön bilgiye ihtiyacınız olacak:
 
 ### Bir sorun mu var?
 Eğer yardıma ihtiyaç duyarsanız, herhangi bir sorun yaşarsanız
-bir [issue oluşturmaktan çekinmeyin](https://github.com/ngn13/o101/issues/new).
+bir [issue oluşturmaktan çekinmeyin](https://github.com/ngn13/overflow-101/issues/new).
 
 Ayrıca [doğrudan bana](mailto:ngn@ngn.tf) da ulaşabilirsiniz.
 
